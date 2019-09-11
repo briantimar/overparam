@@ -14,11 +14,20 @@ end
 
 (l::Layer)(x) = l.matrix * x
 Flux.@treelike Layer
-
+getdata(l::Layer) = l.matrix.data
 
 function LNN(sizes::Vector{Int})
     Chain((Layer(sizes[i], sizes[i+1]) for i in 1:(length(sizes)-1))...)
 end
+
+"Contracts an LNN to produce a single (dout, din) matrix"
+function contract(model::Chain)
+    W = getdata(model.layers[1])
+    for i in 2:length(model)
+        W = getdata(model.layers[i]) * W
+    end
+    W
+end 
 
 inputdim(l::Chain) = l.layers[1].din
 outputdim(l::Chain) = l.layers[end].dout
@@ -39,3 +48,4 @@ function dostep!(lossfn, params, optimizer)
         Tracker.update!(optimizer, p, grads[p])
     end
 end
+
