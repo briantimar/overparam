@@ -1,5 +1,6 @@
-using LinearAlgebra
+using LinearAlgebra: norm
 using Flux
+import Flux: params
 
 struct Layer
     din::Int
@@ -12,9 +13,29 @@ struct Layer
 end
 
 (l::Layer)(x) = l.matrix * x
+Flux.@treelike Layer
+
 
 function LNN(sizes::Vector{Int})
     Chain((Layer(sizes[i], sizes[i+1]) for i in 1:(length(sizes)-1))...)
 end
 
+inputdim(l::Chain) = l.layers[1].din
+outputdim(l::Chain) = l.layers[end].dout
 
+"Loss function defined by a single input/output pair"
+function l2lossfn(model, input::Vector{Float64}, output::Vector{Float64})
+    length(input) != inputdim(model) && throw(ArgumentError("Invalid input dim"))
+    length(output) != outputdim(model) && throw(ArgumentError("Invalid output dim"))
+    return () -> sum((model(input) .- output).^2)
+end
+
+"Compute gradients of lossfn WRT parameters given, then update them with optimizer 
+(this latter step zeros the grads)"
+
+function dostep!(lossfn, params, optimizer)
+    grads = Tracker.gradient(l2lossfn, params)
+    for p in params
+        Tracker.update!(optimizer, p, grads[p])
+    end
+end
