@@ -19,17 +19,19 @@ losses = []
 contractions = []
 colors = [:red, :green, :blue, :purple]
 lengths = []
-p = wireframe(xvals, yvals, lossvals);
+saveconvexGDtrace(sizes[1], target, start, "traj.txt")
+# plotlyjs()
+# p = wireframe(xvals, yvals, lossvals);
 
-for i in 1:length(sizes)
-    l, c = getconvexGDtrace(sizes[i], target, start, 
-                            lr=1e-2, numstep=ns, tol=tol, seed=1)
-    push!(losses, l)
-    push!(contractions, c)
-    push!(lengths, length(l))
+# for i in 1:length(sizes)
+#     l, c = getconvexGDtrace(sizes[i], target, start, 
+#                             lr=1e-2, numstep=ns, tol=tol, seed=1)
+#     push!(losses, l)
+#     push!(contractions, c)
+#     push!(lengths, length(l))
 
-    wx, wy = getcoords(c)
-    plot!(p, wx, wy, l, marker=:circle, color=colors[i])
-end
+#     wx, wy = getcoords(c)
+#     plot!(p, wx, wy, l, marker=:circle, color=colors[i])
+# end
 
-display(p)
+# display(p)
