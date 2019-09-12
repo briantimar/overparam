@@ -16,7 +16,7 @@ for ii in 1:numinit
     end
 end
 
-for var in [:numseed, :numinit, :ndepth, :initializations, :depths, :lr, :tol, :width, :numstep]
+for var in [:numseed, :numinit, :ndepth, :initializations, :depths, :lr, :tol, :width, :numstep, :target]
     alldata["$var"] = eval(var)
 end
 
