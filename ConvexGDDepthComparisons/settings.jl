@@ -1,4 +1,4 @@
-include("utils.jl")
+include("../utils.jl")
 using Random
 using Distributed
 
@@ -24,7 +24,7 @@ tol = 1e-4
 numstep=50000
 
 function filename(depthIndex::Int, initIndex::Int, seed::Int)
-    "trajectory_depthindex_$(depthIndex)_initindex_$(initIndex)_seed_$(seed).txt"
+    "data/trajectory_depthindex_$(depthIndex)_initindex_$(initIndex)_seed_$(seed).txt"
 end
 
 function savetrace(depthIndex::Int, initIndex::Int, seed::Int)
