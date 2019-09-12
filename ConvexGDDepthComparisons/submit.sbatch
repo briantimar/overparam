@@ -8,4 +8,7 @@
 pwd
 date
 
+echo "Training on all cores..."
 julia -p 40 driver.jl
+echo "Finished training"
+date
