@@ -67,6 +67,11 @@ function l2lossfn(model::LNN, input::Vector{Float64}, output::Vector{Float64})
     return () -> sum((model(input) .- output).^2)
 end
 
+"Loss based on norm to target weights"
+function targetloss(model::LNN, w0::Union{Vector{Float64}, Array{Float64, 2}}) 
+    () -> sum((w0 .- contract(model)).^2)
+end
+
 "Compute gradients of lossfn WRT parameters given, then update them with optimizer 
 (this latter step zeros the grads)"
 
@@ -78,9 +83,9 @@ function dostep!(lossfn, params, optimizer)
 end
 
 "Trains a linear neural net via gradient descent. At each training step, logs the loss function and 
-contraction."
+contraction. "
 function gettrajectory!(model::LNN, lossfn,
-                        optimizer, numstep::Int)
+                        optimizer, numstep::Int; tol=-1.0, convcheck=identity)
     
     lossvals = Vector{Float64}()
     contractions = Vector{Array{Float64, 2}}()
@@ -93,7 +98,27 @@ function gettrajectory!(model::LNN, lossfn,
         dostep!(lossfn, parameters, optimizer)
         push!(lossvals, getdata(lossfn()))
         push!(contractions, contractdata(model))
+        if convcheck(lossvals[end]) < tol
+            @info "Tolerance $tol reached, halting training."
+            return lossvals, contractions
+        end
     end
     return lossvals, contractions
+end
+
+"Train the LNN to contract to the target array"
+function trainto!(l::LNN, target::Array{Float64, 2}, optimizer; numstep::Int=1000, tol=1e-3)
+    size(target) == (outputdim(l), inputdim(l)) || error("LNN and target dimensions do not match.")
+    lossfn = () -> sum( (target .- contract(l)).^2)
+    convcheck = (x -> sqrt(abs(x)))
+    return gettrajectory!(l, lossfn, optimizer, numstep, tol=tol, convcheck=convcheck)
+end
+
+function trainto!(l::LNN, target::Array{Float64, 2}; lr=1e-3, tol=1e-3, numstep::Int=1000)
+    optimizer = ADAM(lr)
+    lossvals, contractions = trainto!(l, target, optimizer, numstep=numstep, tol=tol)
+    converged = abs(lossvals[end]) < tol
+    converged || @warn "Failed to converge."
+    return converged
 end
 

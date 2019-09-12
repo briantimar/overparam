@@ -1,3 +1,6 @@
+using Random
+include("models.jl")
+
 "Grid evaluation of 2D loss function."
 function gridloss(lossfn, xvals::Vector{Float64}, yvals::Vector{Float64})
     nx = length(xvals)
@@ -10,7 +13,8 @@ function gridloss(lossfn, xvals::Vector{Float64}, yvals::Vector{Float64})
     return outputs
 end
 
-targetloss(w0::Vector{Float64}) = ( w -> sum((w .- w0).^2))
+targetloss(w0::Union{Vector{Float64}, Array{Float64, 2}}) = ( w -> sum((w .- w0).^2))
+
 
 function l2lossfn(x::Vector{Float64}, y::Vector{Float64})
     return w -> sum((y .- w * x).^2)
@@ -25,4 +29,22 @@ function getcoords(wvals::Vector{Array{Float64, N}}) where N
         wy[i] = wvals[i][2]
     end
     return wx, wy
+end
+
+"Builds LNN which contracts to the given init array. Then performs GD to contract to the target."
+function getconvexGDtrace(sizes::Vector{Int}, target::Array{Float64, 2}, init::Array{Float64, 2}; 
+                           lr=1e-2, numstep=10000, tol=1e-3, seed=nothing)
+    #build the model
+    isnothing(seed) || Random.seed!(seed)
+    model = LNN(sizes)
+    #initialize 
+    converged = trainto!(model, init, numstep=numstep, tol=tol)
+    converged || error("Initialization failed.")
+    # now train to the target.
+    lossfn = targetloss(model, target)
+    optimizer = Descent(lr)
+    convcheck= sqrt
+    losses, contractions = gettrajectory!(model, lossfn, optimizer, numstep, 
+                                            tol=tol, convcheck=convcheck)
+    return losses, contractions
 end
