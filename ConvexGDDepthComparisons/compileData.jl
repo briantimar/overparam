@@ -24,7 +24,7 @@ for ilr in 1:numlr
     end
 end
 
-for var in [:numseed, :numinit, :numdepth, :numlr :initializations, :depths, :lrvals, :tol, :width, :numstep, :target]
+for var in [:numseed, :numinit, :numdepth, :numlr, :initializations, :depths, :lrvals, :tol, :width, :numstep, :target]
     alldata["$var"] = eval(var)
 end
 
