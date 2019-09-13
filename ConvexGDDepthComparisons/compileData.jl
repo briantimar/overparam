@@ -4,10 +4,11 @@ using DelimitedFiles
 using JLD
 
 alldata = Dict{String, Any}()
+for ilr in 1:numlr
+    @info "Collecting lr index $ilr..."
+    for ii in 1:numinit
+        for id in 1:numdepth
 
-for ii in 1:numinit
-    for id in 1:numdepth
-        for ilr in 1:numlr
             traces = Vector{Union{Array{Float64, 2}, Nothing}}()
             for s in 1:numseed
                 try
