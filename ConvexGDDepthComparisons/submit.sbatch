@@ -3,7 +3,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-core=1
 #SBATCH --output=/home/btimar/code/overparam/ConvexGDDepthComparisons/slurm_logs/slurm.out
-#SBATCH --time=01:00:00
+#SBATCH --time=10:00:00
 
 pwd
 date

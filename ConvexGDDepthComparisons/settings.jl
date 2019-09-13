@@ -10,7 +10,7 @@ target = [.5 .1]
 numinit = 20
 initializations = randn(numinit, 2)
 #number of seeds per model and initialization
-numseed = 100
+numseed = 50
 
 #depths to try (number of matrix multiplies)
 depths = collect(1:25)
@@ -19,7 +19,7 @@ numdepth = length(depths)
 width = 10
 
 #training settings
-lrvals = 10. .^ [-5, -4, -3, -2, -1]
+lrvals = 10. .^ [-1, -2, -3, -4]
 numlr = length(lrvals)
 tol = 1e-4
 numstep=Int(1e9)
