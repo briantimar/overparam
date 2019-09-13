@@ -11,7 +11,7 @@ for ilr in 1:numlr
     alldata = Dict{String, Any}()
     for ii in 1:numinit
         for id in 1:numdepth
-            traces = Vector{Array{Float64, 2}}()
+            traces = Vector{Union{Nothing, Array{Float64, 2}}}()
             lengths = Vector{Int}()           
             for s in 1:numseed
                 try
