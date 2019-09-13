@@ -19,7 +19,7 @@ numdepth = length(depths)
 width = 10
 
 #training settings
-lrvals = 10 .^ [-5, -4, -3, -2, -1]
+lrvals = 10. .^ [-5, -4, -3, -2, -1]
 numlr = length(lrvals)
 tol = 1e-4
 numstep=Int(1e9)
