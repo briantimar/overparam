@@ -1,7 +1,7 @@
 using LinearAlgebra: norm
 using Flux
 import Flux: params
-import Base: length
+import Base: length, show
 
 struct Layer
     din::Int
@@ -42,6 +42,9 @@ inputdim(l::LNN) = l.inputdim
 outputdim(l::LNN) = l.outputdim
 length(l::LNN) = length(l.chain)
 Flux.@treelike LNN
+
+Base.show(io::IO, l::LNN) = print(io, "LNN($(l.sizes))")
+
 
 "Contracts an LNN to produce a single (dout, din) matrix"
 function contractdata(model::LNN)
