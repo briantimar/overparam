@@ -20,6 +20,9 @@ getdata(l::Layer) = copy(l.matrix.data)
 getdata(x::Tracker.TrackedReal) = copy(x.data)
 getdata(x) = x
 
+function setdata!(l::Layer, x::Array{Float64, 2})
+    l.matrix.data .= x
+end
 
 struct LNN
     sizes::Vector{Int}
@@ -45,6 +48,19 @@ Flux.@treelike LNN
 
 Base.show(io::IO, l::LNN) = print(io, "LNN($(l.sizes))")
 
+function layerdata(l::LNN)
+    layers = Vector{Array{Float64, 2}}()
+    for i in 1:length(l)
+        push!(layers, getdata(l.layers[i]))
+    end
+    layers
+end
+
+
+
+function setlayer!(l:LNN, i::Int, data::Array{Float64, 2})
+    setdata!(l.layers[i], data)
+end
 
 "Contracts an LNN to produce a single (dout, din) matrix"
 function contractdata(model::LNN)
@@ -85,26 +101,41 @@ function dostep!(lossfn, params, optimizer)
     end
 end
 
+function toarray(contractions::Vector{Array{Float64, 2}})
+    n1, n2 = size(contractions[1])
+    carr = zeros(Float64, length(contractions), n1, n2)
+    for i in 1:length(contractions)
+        carr[i, :, :] = contractions[i]
+    end
+    carr
+end
+
 "Trains a linear neural net via gradient descent. At each training step, logs the loss function and 
 contraction. "
 function gettrajectory!(model::LNN, lossfn,
-                        optimizer, numstep::Int; tol=-1.0, convcheck=identity)
+                        optimizer, numstep::Int; tol=-1.0, convcheck=identity, 
+                                                modelcallback=nothing)
     
     lossvals = Vector{Float64}()
-    contractions = Vector{Array{Float64, 2}}()
-
+    contractions = zeros(Float64, numstep+1, outputdim(model), inputdim(model))
     parameters = params(model)
-    
+
     push!(lossvals, getdata(lossfn()))
-    push!(contractions, contractdata(model))
-    for step in 1:numstep
+    contractions[1, :, :] = contractdata(model)
+    isnothing(modelcallback) || modelcallback(model)
+
+    for step in 2:numstep+1
         dostep!(lossfn, parameters, optimizer)
+
         push!(lossvals, getdata(lossfn()))
-        push!(contractions, contractdata(model))
+        contractions[step, :, :] = contractdata(model)
+        isnothing(modelcallback) || modelcallback(model)
+
         if convcheck(lossvals[end]) < tol
             @info "Tolerance $tol reached, halting training."
-            return lossvals, contractions
+            return lossvals, contractions[1:step, :, :]
         end
+       
     end
     return lossvals, contractions
 end
